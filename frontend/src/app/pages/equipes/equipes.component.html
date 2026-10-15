@@ -1,0 +1,91 @@
+<section class="page-head">
+  <div>
+    <div class="eyebrow">{{ ehAdmin() ? 'ADMINISTRAÇÃO' : 'GESTÃO OPERACIONAL' }}</div>
+    <h1>{{ ehAdmin() ? 'Gestão de equipes' : 'Minha equipe' }}</h1>
+    <p>{{ ehAdmin() ? 'Gerencie equipes, gestores e vínculos de integrantes.' : 'Consulte sua equipe, conheça os integrantes e prepare a distribuição de tarefas.' }}</p>
+  </div>
+  @if (ehAdmin()) { <button class="primary" type="button" (click)="abrirFormulario()">＋ Nova equipe</button> }
+</section>
+
+@if (erro()) { <div class="alert error" role="alert">{{ erro() }}</div> }
+@if (sucesso()) { <div class="alert success" role="status">{{ sucesso() }}</div> }
+
+@if (formularioAberto()) {
+  <section class="panel form-panel">
+    <div class="panel-heading"><div><h2>Cadastrar equipe</h2><p>Informe os dados e selecione o gestor responsável.</p></div><button class="quiet" type="button" (click)="formularioAberto.set(false)">Fechar ✕</button></div>
+    <form (ngSubmit)="criar()">
+      <div class="form-grid">
+        <label>Nome da equipe<input name="nome" [(ngModel)]="nome" required maxlength="120" /></label>
+        <label>Gestor responsável<select name="gestorId" [(ngModel)]="gestorId" required><option [ngValue]="null">Selecione um gestor…</option>@for (g of gestoresDisponiveis(); track g.id) { <option [ngValue]="g.id">{{ g.nome }} — {{ g.email }}</option> }</select></label>
+        <label class="wide">Descrição<textarea name="descricao" [(ngModel)]="descricao" rows="2" maxlength="500"></textarea></label>
+      </div>
+      @if (gestoresDisponiveis().length === 0) { <p class="inline-note">Não há gestores ativos disponíveis ou a lista de usuários não pôde ser carregada.</p> }
+      <div class="form-actions"><button class="secondary" type="button" (click)="formularioAberto.set(false)">Cancelar</button><button class="primary" [disabled]="salvando() || !gestorId">{{ salvando() ? 'Salvando…' : 'Criar equipe' }}</button></div>
+    </form>
+  </section>
+}
+
+<div class="layout">
+  <section class="panel team-panel">
+    <div class="panel-heading"><div><h2>{{ ehAdmin() ? 'Equipes cadastradas' : 'Equipes sob minha gestão' }}</h2><p>Selecione uma equipe para abrir seus integrantes.</p></div><button class="secondary" type="button" (click)="carregar()" [disabled]="carregando()">↻ Atualizar</button></div>
+    @if (carregando()) { <div class="empty">Carregando equipes…</div> }
+    @else if (equipes().length === 0) { <div class="empty">{{ ehAdmin() ? 'Nenhuma equipe encontrada.' : 'Nenhuma equipe está vinculada ao seu usuário. Confirme a atribuição de gestor no cadastro da equipe.' }}</div> }
+    @else {
+      @for (eq of equipes(); track eq.id) {
+        <button class="team-item" type="button" [class.selected]="equipeSelecionada()?.id === eq.id" (click)="selecionar(eq)">
+          <span class="team-symbol">◎</span><span class="team-copy"><strong>{{ eq.nome }}</strong><small>{{ eq.descricao || 'Sem descrição' }}</small><small class="manager-preview">{{ eq.gestorNome ? 'Gestor: ' + eq.gestorNome : (ehGestor() ? 'Equipe vinculada ao seu usuário' : 'Gestor #' + (eq.gestorId ?? 'não informado')) }}</small></span><span class="chevron">›</span>
+        </button>
+      }
+    }
+  </section>
+
+  <section class="panel members-panel">
+    <div class="panel-heading"><div><h2>{{ equipeSelecionada()?.nome || 'Detalhes da equipe' }}</h2><p>{{ membros().length }} integrante(s) retornado(s) pelo sistema</p></div>@if (equipeSelecionada()?.ativo === false) { <span class="status inactive">Inativa</span> }</div>
+    @if (equipeSelecionada()) {
+      <div class="team-details"><div class="detail-block"><span class="detail-label">GESTOR RESPONSÁVEL</span><strong>{{ equipeSelecionada()?.gestorNome || (equipeSelecionada()?.gestorId ? 'Gestor #' + equipeSelecionada()?.gestorId : (ehGestor() ? usuario()?.nome : 'Não informado')) }}</strong><small>{{ equipeSelecionada()?.gestorEmail || usuario()?.email || 'Responsável pela equipe' }}</small></div><div class="detail-block"><span class="detail-label">DESCRIÇÃO</span><strong>{{ equipeSelecionada()?.descricao || 'Sem descrição cadastrada' }}</strong></div></div>
+      @if (ehAdmin()) { <div class="add-member"><label for="usuarioId">Vincular integrante</label><div><select id="usuarioId" name="usuarioId" [(ngModel)]="usuarioId"><option [ngValue]="null">Selecione um usuário…</option>@for (u of usuariosDisponiveis(); track u.id) { <option [ngValue]="u.id">{{ u.nome }} — {{ u.email }}</option> }</select><button class="primary" type="button" (click)="adicionar()" [disabled]="!usuarioId || salvando()">Adicionar</button></div></div> }
+      <div class="member-heading"><h3>Integrantes da equipe</h3><span>{{ membros().length }}</span></div>
+      @if (carregandoMembros()) { <div class="empty">Carregando integrantes…</div> }
+      @else if (membros().length === 0) { <div class="empty">Nenhum integrante foi retornado para esta equipe.</div> }
+      @else {
+        @for (m of membros(); track (m.usuarioId ?? m.id)) {
+          <div class="member-row"><span class="avatar">{{ (m.nome || 'U').slice(0, 1).toUpperCase() }}</span><div class="member-copy"><strong>{{ m.nome }}</strong><small>{{ m.email }}</small><span class="member-meta">{{ perfilLabel(m.perfil) }} · {{ m.ativo === false ? 'Inativo' : 'Ativo' }}</span></div>@if (ehAdmin()) { <button class="remove" type="button" (click)="remover(m)">Remover</button> }
+          </div>
+        }
+      }
+
+      @if (ehGestor()) {
+        <div class="task-section">
+          <div class="task-heading"><div><h3>Preparação de atribuição de tarefas</h3><p>Monte uma lista de tarefas e associe cada uma a um integrante ativo.</p></div><button class="primary" type="button" (click)="abrirAtribuicao()" [disabled]="membros().length === 0">＋ Atribuir tarefa</button></div>
+          <div class="notice"><strong>Tarefas persistidas</strong><span>As tarefas criadas são gravadas no banco e ficam vinculadas à equipe e ao integrante responsável.</span></div>
+          @if (formularioTarefaAberto()) {
+            <form class="task-form" (ngSubmit)="adicionarRascunhoTarefa()">
+              <label>Título da tarefa<input name="tituloTarefa" [(ngModel)]="tituloTarefa" required maxlength="160" placeholder="Ex.: Elaborar relatório semanal" /></label>
+              <label>Responsável<select name="responsavelTarefaId" [(ngModel)]="responsavelTarefaId" required><option [ngValue]="null">Selecione um integrante ativo…</option>@for (m of membros(); track (m.usuarioId ?? m.id)) { @if (m.ativo !== false) { <option [ngValue]="m.usuarioId ?? m.id">{{ m.nome }} — {{ perfilLabel(m.perfil) }}</option> } }</select></label>
+              <label>Descrição<textarea name="descricaoTarefa" [(ngModel)]="descricaoTarefa" rows="3" maxlength="2000" placeholder="Detalhes, entregáveis e orientações"></textarea></label>
+              <div class="task-form-grid"><label>Prioridade<select name="prioridadeTarefa" [(ngModel)]="prioridadeTarefa"><option value="BAIXA">Baixa</option><option value="MEDIA">Média</option><option value="ALTA">Alta</option></select></label><label>Prazo previsto<input name="prazoTarefa" [(ngModel)]="prazoTarefa" type="date" /></label></div>
+              <div class="form-actions"><button class="secondary" type="button" (click)="formularioTarefaAberto.set(false)">Cancelar</button><button class="primary" type="submit">Criar e atribuir tarefa</button></div>
+            </form>
+          }
+          @if (carregandoTarefas()) { <div class="empty">Carregando tarefas…</div> }
+          @else if (tarefas().length === 0) { <div class="empty task-empty">Nenhuma tarefa cadastrada para esta equipe.</div> }
+          @else { <div class="draft-list">@for (t of tarefas(); track t.id) {
+            <article class="draft-card">
+              <div class="draft-main">
+                <strong>{{ t.titulo }}</strong>
+                <p>{{ t.descricao || 'Sem descrição adicional.' }}</p>
+                <small>Responsável: {{ t.responsavelNome }} · Prioridade: {{ prioridadeLabel(t.prioridade) }}{{ t.prazo ? ' · Prazo: ' + t.prazo : '' }}</small>
+              </div>
+              <div class="task-actions">
+                <span class="status" [class.inactive]="t.status === 'CANCELADA'">{{ statusLabel(t.status) }}</span>
+                @if (t.status === 'PENDENTE') { <button class="secondary" type="button" (click)="atualizarStatus(t, 'EM_ANDAMENTO')">Iniciar</button> }
+                @if (t.status === 'PENDENTE' || t.status === 'EM_ANDAMENTO') { <button class="primary" type="button" (click)="atualizarStatus(t, 'CONCLUIDA')">Concluir</button> }
+              </div>
+            </article>
+          }</div>
+          }
+        </div>
+      }
+    } @else { <div class="empty">Selecione uma equipe na lista para visualizar seu gestor e integrantes.</div> }
+  </section>
+</div>

@@ -1,0 +1,75 @@
+<div class="login-page">
+  <section class="login-intro">
+    <div class="brand-lockup">
+      <div class="brand-mark">S</div>
+      <div>
+        <div class="brand-name">SISPROC</div>
+        <div class="brand-caption">Gestão processual</div>
+      </div>
+    </div>
+
+    <div class="intro-copy">
+      <span class="eyebrow">GESTÃO • ORGANIZAÇÃO • ACOMPANHAMENTO</span>
+      <h1>Clareza para acompanhar.<br><span>Controle para avançar.</span></h1>
+      <p>Centralize processos, equipes e responsáveis em um só lugar.</p>
+    </div>
+
+    <div class="intro-footer">
+      <span class="status-dot"></span>
+      Ambiente de gestão processual
+    </div>
+  </section>
+
+  <section class="login-panel">
+    <div class="login-card">
+      <div class="mobile-brand">
+        <div class="brand-mark">S</div>
+        <span class="brand-name">SISPROC</span>
+      </div>
+      <span class="eyebrow">BEM-VINDO DE VOLTA</span>
+      <h2>Acesse sua conta</h2>
+      <p class="login-description">Informe suas credenciais para continuar.</p>
+
+      @if (erro()) {
+        <div class="error-message" role="alert">
+          <span class="error-icon">!</span>
+          {{ erro() }}
+        </div>
+      }
+
+      <form (ngSubmit)="entrar()" #formLogin="ngForm">
+        <label for="email">E-mail</label>
+        <div class="input-wrap">
+          <span class="field-icon">✉</span>
+          <input id="email" name="email" type="email" [(ngModel)]="email"
+                 placeholder="nome@empresa.com" autocomplete="username"
+                 required email [disabled]="enviando()" />
+        </div>
+
+        <label for="senha">Senha</label>
+        <div class="input-wrap">
+          <span class="field-icon">⌑</span>
+          <input id="senha" name="senha" [type]="mostrarSenha() ? 'text' : 'password'"
+                 [(ngModel)]="senha" placeholder="Digite sua senha"
+                 autocomplete="current-password" required [disabled]="enviando()" />
+          <button class="show-password" type="button"
+                  (click)="mostrarSenha.set(!mostrarSenha())"
+                  [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'">
+            {{ mostrarSenha() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+
+        <button class="submit-button" type="submit"
+                [disabled]="enviando() || formLogin.invalid">
+          @if (enviando()) { Entrando... } @else { Entrar no sistema <span>→</span> }
+        </button>
+      </form>
+
+      <div class="security-note">
+        <span class="lock-symbol">▣</span>
+        <span>Acesso protegido por autenticação e controle de sessão.</span>
+      </div>
+      <div class="login-bottom">SISPROC <span>•</span> Sistema de Gestão Processual</div>
+    </div>
+  </section>
+</div>

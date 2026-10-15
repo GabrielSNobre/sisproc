@@ -1,0 +1,52 @@
+<section class="page-head">
+  <div><div class="eyebrow">ADMINISTRAÇÃO</div><h1>Usuários</h1><p>Cadastre, consulte os acessos e redefina senhas quando necessário.</p></div>
+  <button class="primary" type="button" (click)="abrirFormulario()">＋ Novo usuário</button>
+</section>
+@if (erro()) { <div class="alert error" role="alert">{{ erro() }}</div> }
+@if (sucesso()) { <div class="alert success" role="status">{{ sucesso() }}</div> }
+@if (formularioAberto()) {
+  <section class="panel form-panel">
+    <div class="panel-heading"><div><h2>Novo usuário</h2><p>Os campos marcados são obrigatórios.</p></div><button class="quiet" type="button" (click)="cancelar()">Fechar ✕</button></div>
+    <form (ngSubmit)="cadastrar()">
+      <div class="form-grid">
+        <label>Nome completo<input name="nome" [(ngModel)]="nome" required maxlength="150" autocomplete="name" /></label>
+        <label>E-mail institucional<input name="email" [(ngModel)]="email" type="email" required maxlength="254" autocomplete="email" /></label>
+        <label>Senha inicial<input name="senha" [(ngModel)]="senha" type="password" required minlength="8" maxlength="72" autocomplete="new-password" /></label>
+        <label>Perfil de acesso<select name="perfil" [(ngModel)]="perfil"><option value="USUARIO">Usuário</option><option value="GESTOR">Gestor</option><option value="ADMINISTRADOR">Administrador</option></select></label>
+      </div>
+      <div class="form-actions"><button class="secondary" type="button" (click)="cancelar()">Cancelar</button><button class="primary" type="submit" [disabled]="salvando()">{{ salvando() ? 'Salvando…' : 'Cadastrar usuário' }}</button></div>
+    </form>
+  </section>
+}
+<section class="panel">
+  <div class="panel-heading"><div><h2>Usuários cadastrados</h2><p>{{ usuarios().length }} registro(s) retornado(s) pelo backend.</p></div><button class="secondary" type="button" (click)="carregar()" [disabled]="carregando()">↻ Atualizar</button></div>
+  @if (carregando()) { <div class="empty">Carregando usuários…</div> }
+  @else if (usuarios().length === 0 && !erro()) { <div class="empty">Nenhum usuário encontrado.</div> }
+  @else {
+    <div class="table-wrap"><table><thead><tr><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Ações</th></tr></thead><tbody>
+      @for (u of usuarios(); track u.id) {
+        <tr>
+          <td><div class="person"><span class="avatar">{{ u.nome.slice(0,1).toUpperCase() }}</span><div><strong>{{ u.nome }}</strong><small>ID {{ u.id }}</small></div></div></td>
+          <td>{{ u.email }}</td><td><span class="role">{{ perfilLabel(u.perfil) }}</span></td>
+          <td><span class="status" [class.inactive]="!u.ativo"><i></i>{{ u.ativo ? 'Ativo' : 'Inativo' }}</span></td>
+          <td><button class="action-button" type="button" (click)="abrirTrocaSenha(u)" [attr.aria-label]="'Redefinir senha de ' + u.nome">♧ Redefinir senha</button></td>
+        </tr>
+      }
+    </tbody></table></div>
+  }
+</section>
+
+@if (usuarioSenhaSelecionado(); as selecionado) {
+  <div class="modal-backdrop" role="presentation" (click)="fecharTrocaSenha()">
+    <section class="password-dialog" role="dialog" aria-modal="true" aria-labelledby="reset-title" (click)="$event.stopPropagation()">
+      <div class="dialog-heading"><span class="dialog-icon">⌑</span><div><h2 id="reset-title">Redefinir senha</h2><p>Defina uma nova senha para <strong>{{ selecionado.nome }}</strong>.</p></div><button class="icon-button" type="button" aria-label="Fechar" (click)="fecharTrocaSenha()">✕</button></div>
+      @if (erroSenha()) { <div class="alert error" role="alert">{{ erroSenha() }}</div> }
+      <form (ngSubmit)="redefinirSenha()">
+        <label>Nova senha<input name="novaSenhaAdmin" [(ngModel)]="novaSenhaAdmin" type="password" minlength="8" maxlength="72" autocomplete="new-password" required /></label>
+        <label>Confirmar nova senha<input name="confirmarSenhaAdmin" [(ngModel)]="confirmarSenhaAdmin" type="password" minlength="8" maxlength="72" autocomplete="new-password" required /></label>
+        <p class="security-note">A senha deve ter entre 8 e 72 caracteres. O administrador não precisa conhecer a senha anterior do usuário.</p>
+        <div class="form-actions"><button class="secondary" type="button" (click)="fecharTrocaSenha()">Cancelar</button><button class="primary" type="submit" [disabled]="salvandoSenha()">{{ salvandoSenha() ? 'Salvando…' : 'Confirmar nova senha' }}</button></div>
+      </form>
+    </section>
+  </div>
+}

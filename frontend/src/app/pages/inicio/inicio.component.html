@@ -1,0 +1,56 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">VISÃO GERAL</div>
+    <h1>Olá, {{ primeiroNome() }} <span class="wave">👋</span></h1>
+    <p>Acompanhe o ambiente de trabalho e acesse suas ferramentas.</p>
+  </div>
+  <div class="today-pill"><span></span> Ambiente conectado</div>
+</div>
+
+<section class="welcome-banner">
+  <div class="banner-copy">
+    <span class="banner-label">SISPROC · GESTÃO PROCESSUAL</span>
+    <h2>Organização que move<br>seus projetos adiante.</h2>
+    <p>Gerencie informações, organize equipes e acompanhe responsabilidades em um só ambiente.</p>
+  </div>
+  <div class="banner-art" aria-hidden="true">
+    <div class="art-circle circle-one"></div><div class="art-circle circle-two"></div>
+    <div class="art-document"><div class="doc-top"></div><i></i><i></i><i></i><b>✓</b></div>
+  </div>
+</section>
+
+<div class="section-heading">
+  <div><h2>Acesso rápido</h2><p>Atalhos de acordo com seu perfil de acesso.</p></div>
+</div>
+
+<div class="quick-grid">
+  @if (usuario()?.perfil === 'ADMINISTRADOR') {
+    <a class="quick-card" routerLink="/usuarios">
+      <div class="quick-icon blue">♙</div><div class="quick-text"><h3>Usuários</h3><p>Consultar e administrar contas do sistema.</p></div><span class="arrow">↗</span>
+    </a>
+    <a class="quick-card" routerLink="/equipes">
+      <div class="quick-icon teal">◎</div><div class="quick-text"><h3>Equipes</h3><p>Organizar equipes e responsáveis.</p></div><span class="arrow">↗</span>
+    </a>
+  }
+  @if (usuario()?.perfil === 'GESTOR') {
+    <a class="quick-card" routerLink="/equipes">
+      <div class="quick-icon teal">◎</div><div class="quick-text"><h3>Minha equipe</h3><p>Consultar a equipe sob sua responsabilidade.</p></div><span class="arrow">↗</span>
+    </a>
+    <a class="quick-card" routerLink="/processos">
+      <div class="quick-icon violet">▤</div><div class="quick-text"><h3>Processos e atividades</h3><p>Acompanhar etapas, responsáveis e situação.</p></div><span class="arrow">↗</span>
+    </a>
+  }
+  @if (usuario()?.perfil === 'USUARIO') {
+    <a class="quick-card" routerLink="/perfil">
+      <div class="quick-icon blue">♙</div><div class="quick-text"><h3>Meu perfil</h3><p>Consultar seus dados de acesso.</p></div><span class="arrow">↗</span>
+    </a>
+    <a class="quick-card" routerLink="/processos">
+      <div class="quick-icon violet">▤</div><div class="quick-text"><h3>Processos</h3><p>Acessar a área de processos disponível.</p></div><span class="arrow">↗</span>
+    </a>
+  }
+</div>
+
+<section class="notice">
+  <div class="notice-icon">i</div>
+  <div><strong>Bem-vindo ao SISPROC</strong><p>Os atalhos exibidos respeitam o perfil autenticado. Os módulos de processos e atividades serão conectados aos seus endpoints específicos na próxima etapa.</p></div>
+</section>

@@ -1,0 +1,71 @@
+@if (estaNoLogin) {
+  <router-outlet />
+} @else {
+  <div class="app-shell">
+    <aside class="sidebar" [class.sidebar-open]="menuAberto()">
+      <a class="brand" routerLink="/inicio" (click)="menuAberto.set(false)">
+        <span class="brand-mark">S</span>
+        <span class="brand-copy"><strong>SISPROC</strong><small>Gestão processual</small></span>
+      </a>
+
+      <div class="nav-caption">MENU PRINCIPAL</div>
+      <nav class="main-nav">
+        <a routerLink="/inicio" routerLinkActive="active" (click)="menuAberto.set(false)">
+          <span class="nav-icon">⌂</span><span>Visão geral</span>
+        </a>
+        @if (usuario()?.perfil === 'ADMINISTRADOR') {
+          <div class="nav-section">ADMINISTRAÇÃO</div>
+          <a routerLink="/usuarios" routerLinkActive="active" (click)="menuAberto.set(false)">
+            <span class="nav-icon">♙</span><span>Usuários</span>
+          </a>
+          <a routerLink="/equipes" routerLinkActive="active" (click)="menuAberto.set(false)">
+            <span class="nav-icon">◎</span><span>Equipes</span>
+          </a>
+        }
+        @if (usuario()?.perfil === 'GESTOR') {
+          <div class="nav-section">GESTÃO</div>
+          <a routerLink="/equipes" routerLinkActive="active" (click)="menuAberto.set(false)">
+            <span class="nav-icon">◎</span><span>Minha equipe</span>
+          </a>
+        }
+        <div class="nav-section">ACOMPANHAMENTO</div>
+        <a routerLink="/processos" routerLinkActive="active" (click)="menuAberto.set(false)">
+          <span class="nav-icon">▤</span><span>Processos e atividades</span>
+        </a>
+        <div class="nav-section">CONTA</div>
+        <a routerLink="/perfil" routerLinkActive="active" (click)="menuAberto.set(false)">
+          <span class="nav-icon">◉</span><span>Meu perfil</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="help-card"><span class="help-icon">?</span><div><strong>Precisa de ajuda?</strong><small>Consulte o administrador.</small></div></div>
+        <div class="sidebar-version">SISPROC <span>v0.1 · desenvolvimento</span></div>
+      </div>
+    </aside>
+
+    @if (menuAberto()) {
+      <button class="mobile-overlay" aria-label="Fechar menu" (click)="menuAberto.set(false)"></button>
+    }
+
+    <div class="main-column">
+      <header class="topbar">
+        <button class="menu-toggle" aria-label="Abrir menu" (click)="menuAberto.set(!menuAberto())">☰</button>
+        <div class="breadcrumb"><span>Workspace</span><b>/</b><strong>SISPROC</strong></div>
+        <div class="topbar-right">
+          <div class="session-indicator"><span></span> Sessão ativa</div>
+          <div class="user-menu">
+            <div class="avatar">{{ (usuario()?.nome || 'U').slice(0, 1).toUpperCase() }}</div>
+            <div class="user-label"><strong>{{ usuario()?.nome || 'Usuário' }}</strong><small>{{ usuario()?.perfil || 'Perfil' }}</small></div>
+            <button class="logout-button" (click)="sair()" title="Encerrar sessão" aria-label="Encerrar sessão">↪</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-area">
+        <router-outlet />
+      </main>
+      <footer class="app-footer"><span>© {{ 2026 }} SISPROC</span><span>Sistema de Gestão Processual e Monitoramento</span></footer>
+    </div>
+  </div>
+}

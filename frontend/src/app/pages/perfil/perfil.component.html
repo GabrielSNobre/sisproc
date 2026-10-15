@@ -1,0 +1,27 @@
+<section class="page-head"><div><div class="eyebrow">CONTA</div><h1>Meu perfil</h1><p>Atualize seus dados pessoais e gerencie a senha da sua conta.</p></div></section>
+@if (erro()) { <div class="alert error" role="alert">{{ erro() }}</div> }
+@if (sucesso()) { <div class="alert success" role="status">{{ sucesso() }}</div> }
+
+<section class="panel">
+  <div class="profile-banner"><span class="avatar">{{ (usuario()?.nome || 'U').slice(0,1).toUpperCase() }}</span><div><h2>{{ usuario()?.nome || 'Carregando perfil…' }}</h2><p>{{ usuario()?.email || '' }}</p></div><span class="role">{{ usuario() ? perfilLabel(usuario()!.perfil) : 'Conta' }}</span></div>
+  @if (carregando()) { <div class="empty">Consultando dados da conta…</div> }
+  @else {
+    <form (ngSubmit)="salvar()"><div class="form-grid"><label>Nome completo<input name="nome" [(ngModel)]="nome" required maxlength="150" /></label><label>E-mail<input name="email" [(ngModel)]="email" type="email" required maxlength="254" /></label><label>Perfil de acesso<input [value]="perfilLabel(usuario()?.perfil || '')" disabled /></label><label>ID do usuário<input [value]="usuario()?.id ?? ''" disabled /></label></div><div class="form-actions"><button class="secondary" type="button" (click)="carregar()">Descartar alterações</button><button class="primary" [disabled]="salvando()">{{ salvando() ? 'Salvando…' : 'Salvar alterações' }}</button></div></form>
+  }
+</section>
+
+<section class="panel password-panel">
+  <div class="section-heading"><div><h2>Alterar senha</h2><p>Por segurança, informe sua senha atual antes de cadastrar uma nova.</p></div><span class="security-icon">⌑</span></div>
+  @if (erroSenha()) { <div class="alert error password-alert" role="alert">{{ erroSenha() }}</div> }
+  @if (sucessoSenha()) { <div class="alert success password-alert" role="status">{{ sucessoSenha() }}</div> }
+  <form (ngSubmit)="alterarSenha()">
+    <div class="password-grid">
+      <label>Senha atual<input name="senhaAtual" [(ngModel)]="senhaAtual" type="password" autocomplete="current-password" required /></label>
+      <span class="grid-spacer"></span>
+      <label>Nova senha<input name="novaSenha" [(ngModel)]="novaSenha" type="password" autocomplete="new-password" minlength="8" maxlength="72" required /><small>Use pelo menos 8 caracteres.</small></label>
+      <label>Confirmar nova senha<input name="confirmarSenha" [(ngModel)]="confirmarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="72" required /></label>
+    </div>
+    <div class="form-actions"><button class="primary" [disabled]="alterandoSenha()">{{ alterandoSenha() ? 'Alterando…' : 'Alterar minha senha' }}</button></div>
+  </form>
+</section>
+<div class="hint"><strong>Segurança da conta</strong><p>O perfil de acesso é administrado pelo SISPROC e não pode ser alterado nesta tela. A senha atual nunca é exibida nem armazenada no navegador.</p></div>
