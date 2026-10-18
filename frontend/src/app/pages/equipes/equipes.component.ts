@@ -22,6 +22,14 @@ interface Membro {
   ativo?: boolean;
 }
 
+interface MembroApi {
+  id: number;
+  usuarioId: number;
+  nomeUsuario: string;
+  emailUsuario: string;
+  ativo: boolean;
+}
+
 interface Tarefa {
   id: number;
   equipeId: number;
@@ -161,10 +169,18 @@ export class EquipesComponent {
     this.usuariosDisponiveis.set([]);
     this.carregandoMembros.set(true);
     try {
-      this.membros.set(await this.api.get<Membro[]>(`/equipes/${equipe.id}/membros`));
-      if (this.ehGestor() || this.ehAdmin()) {
-        await this.carregarTarefas(equipe.id);
-      }
+      const membrosApi = await this.api.get<MembroApi[]>(`/equipes/${equipe.id}/membros`);
+      this.membros.set(membrosApi.map(m => ({
+        id: m.id,
+        usuarioId: m.usuarioId,
+        nome: m.nomeUsuario,
+        email: m.emailUsuario,
+        ativo: m.ativo,
+        perfil: 'USUARIO',
+      })));
+      // Tarefas ainda não estão implementadas no backend identificado.
+      // Evita chamar /api/tarefas/equipe/{id} enquanto o endpoint não existir.
+      this.tarefas.set([]);
       if (this.ehAdmin()) {
         const todos = await this.api.get<UsuarioSessao[]>('/usuarios');
         const idsMembros = new Set(this.membros().map(m => m.usuarioId ?? m.id));

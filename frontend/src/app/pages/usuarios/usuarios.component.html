@@ -29,7 +29,7 @@
           <td><div class="person"><span class="avatar">{{ u.nome.slice(0,1).toUpperCase() }}</span><div><strong>{{ u.nome }}</strong><small>ID {{ u.id }}</small></div></div></td>
           <td>{{ u.email }}</td><td><span class="role">{{ perfilLabel(u.perfil) }}</span></td>
           <td><span class="status" [class.inactive]="!u.ativo"><i></i>{{ u.ativo ? 'Ativo' : 'Inativo' }}</span></td>
-          <td><button class="action-button" type="button" (click)="abrirTrocaSenha(u)" [attr.aria-label]="'Redefinir senha de ' + u.nome">♧ Redefinir senha</button></td>
+          <td><div class="user-actions"><button class="action-button" type="button" (click)="abrirTrocaPerfil(u)" [attr.aria-label]="'Alterar perfil de ' + u.nome">Alterar perfil</button><button class="action-button" type="button" (click)="abrirTrocaSenha(u)" [attr.aria-label]="'Redefinir senha de ' + u.nome">♧ Redefinir senha</button></div></td>
         </tr>
       }
     </tbody></table></div>
@@ -46,6 +46,33 @@
         <label>Confirmar nova senha<input name="confirmarSenhaAdmin" [(ngModel)]="confirmarSenhaAdmin" type="password" minlength="8" maxlength="72" autocomplete="new-password" required /></label>
         <p class="security-note">A senha deve ter entre 8 e 72 caracteres. O administrador não precisa conhecer a senha anterior do usuário.</p>
         <div class="form-actions"><button class="secondary" type="button" (click)="fecharTrocaSenha()">Cancelar</button><button class="primary" type="submit" [disabled]="salvandoSenha()">{{ salvandoSenha() ? 'Salvando…' : 'Confirmar nova senha' }}</button></div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (usuarioPerfilSelecionado(); as selecionadoPerfil) {
+  <div class="modal-backdrop" role="presentation" (click)="fecharTrocaPerfil()">
+    <section class="password-dialog" role="dialog" aria-modal="true" aria-labelledby="perfil-title" (click)="$event.stopPropagation()">
+      <div class="dialog-heading">
+        <span class="dialog-icon">♙</span>
+        <div><h2 id="perfil-title">Alterar perfil de acesso</h2><p>Defina o nível de acesso de <strong>{{ selecionadoPerfil.nome }}</strong>.</p></div>
+        <button class="icon-button" type="button" aria-label="Fechar" [disabled]="salvandoPerfil()" (click)="fecharTrocaPerfil()">✕</button>
+      </div>
+      @if (erroPerfil()) { <div class="alert error" role="alert">{{ erroPerfil() }}</div> }
+      <form (ngSubmit)="alterarPerfil()">
+        <label>Perfil de acesso
+          <select name="perfilEdicao" [(ngModel)]="perfilEdicao" required>
+            <option value="USUARIO">Usuário</option>
+            <option value="GESTOR">Gestor</option>
+            <option value="ADMINISTRADOR">Administrador</option>
+          </select>
+        </label>
+        <p class="security-note">A alteração de perfil é restrita a administradores. A atribuição de equipes a gestores é realizada separadamente.</p>
+        <div class="form-actions">
+          <button class="secondary" type="button" [disabled]="salvandoPerfil()" (click)="fecharTrocaPerfil()">Cancelar</button>
+          <button class="primary" type="submit" [disabled]="salvandoPerfil() || perfilEdicao === selecionadoPerfil.perfil">{{ salvandoPerfil() ? 'Salvando…' : 'Salvar perfil' }}</button>
+        </div>
       </form>
     </section>
   </div>

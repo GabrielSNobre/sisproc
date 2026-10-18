@@ -93,6 +93,16 @@ public class EquipeService {
                 Sort.by(Sort.Direction.ASC, "nome"));
     }
 
+    @Transactional(readOnly = true)
+    public List<Equipe> listarMinhasEquipes() {
+        Usuario usuario = obterUsuarioAutenticado();
+        if (usuario.getPerfil() != Perfil.GESTOR && usuario.getPerfil() != Perfil.ADMINISTRADOR) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Somente gestores e administradores podem consultar equipes sob gestão.");
+        }
+        return equipeRepository.findByGestorIdAndAtivoTrueOrderByNomeAsc(usuario.getId());
+    }
+
     @Transactional
     public MembroEquipe adicionarMembro(
             Long equipeId,

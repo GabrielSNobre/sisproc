@@ -1,2 +1,83 @@
-<section class="page-head"><div><div class="eyebrow">ACOMPANHAMENTO</div><h1>Processos e atividades</h1><p>Visão de acompanhamento dos processos vinculados às equipes.</p></div></section>
-<section class="panel"><div class="icon">▤</div><h2>Estrutura da tela preparada</h2><p>A interface de processos depende dos endpoints de processos, etapas e atividades no backend. Eles ainda não constam no contrato que foi confirmado para esta etapa, então esta tela não inventa registros nem simula dados.</p><div class="next"><strong>Próxima integração necessária</strong><ul><li>Listagem de processos conforme o perfil e a equipe.</li><li>Consulta de responsável, etapa atual e situação.</li><li>Cadastro e atualização de atividades, caso previstos no backend.</li></ul></div></section>
+<section class="processos">
+  <header><span class="eyebrow">AUDITORIA E COMUNICAÇÃO</span><h1>Documentos de processos</h1>
+    <p>Registre ações, minutas e despachos vinculados a tarefas. Encaminhe documentos a outras equipes e mantenha um histórico de respostas.</p></header>
+  @if (erro()) { <p class="alert erro" role="alert">{{ erro() }}</p> }
+  @if (sucesso()) { <p class="alert sucesso" role="status">{{ sucesso() }}</p> }
+  <div class="painel">
+    <h2>Consultar documentos de uma tarefa</h2>
+    <div class="linha"><label>ID da tarefa <input type="number" min="1" [(ngModel)]="tarefaId" placeholder="Ex.: 12" /></label>
+      <button type="button" (click)="carregarTarefa()" [disabled]="carregando()">Consultar</button></div>
+    @if (carregando()) { <p>Carregando...</p> }
+    @if (linhaDoTempo().length) {
+      @if (linhaDoTempo().at(-1); as ultimo) {
+        <div class="ultima-atualizacao">
+          <strong>Última atualização: {{ ultimo.tipoEvento === 'RESPOSTA' ? 'Resposta' : ultimo.tipoDocumento }} de {{ ultimo.equipeAutoraNome || ultimo.autorNome }}</strong>
+          <small>{{ ultimo.criadoEm | date:'dd/MM/yyyy HH:mm' }} · {{ ultimo.assunto }}</small>
+        </div>
+      }
+      <ol class="timeline">
+        @for (evento of linhaDoTempo(); track evento.tipoEvento + '-' + evento.id) {
+          <li class="evento">
+            <div class="linha entre"><strong>{{ evento.tipoEvento === 'RESPOSTA' ? 'Resposta' : evento.tipoDocumento }} — {{ evento.assunto }}</strong>
+              <small>{{ evento.criadoEm | date:'dd/MM/yyyy HH:mm' }}</small></div>
+            <small>Por {{ evento.autorNome }} @if (evento.equipeAutoraNome) { · {{ evento.equipeAutoraNome }} }
+              @if (evento.tipoEvento === 'DOCUMENTO' && evento.equipeDestinoNome) { → {{ evento.equipeDestinoNome }} }</small>
+            <div class="texto-rico" [innerHTML]="evento.conteudo"></div>
+            @if (evento.tipoEvento === 'DOCUMENTO') {
+              <button type="button" class="secundario" (click)="abrirDocumento(evento.documentoId)">Ver / responder</button>
+            }
+          </li>
+        }
+      </ol>
+    } @else { <p class="vazio">Nenhuma movimentação encontrada para a tarefa consultada.</p> }
+  </div>
+  <div class="painel">
+    <h2>Novo registro documental</h2>
+    <p class="ajuda">O documento será vinculado ao ID da tarefa acima. Sem destinatário, permanece interno à equipe de origem.</p>
+    <div class="campos"><label>Tipo<select [(ngModel)]="tipo">@for (t of tipos; track t) { <option [value]="t">{{ t }}</option> }</select></label>
+      <label>Assunto<input [(ngModel)]="assunto" maxlength="160" /></label>
+      <label>Equipe destinatária (opcional)
+        <select [(ngModel)]="equipeDestinoId" [disabled]="!!equipesErro">
+          <option value="">Sem encaminhamento (documento interno)</option>
+          @for (e of equipes; track e.id) { <option [value]="e.id">{{ e.nome }}</option> }
+        </select>
+        @if (equipesErro) { <small class="erro-lov">Não foi possível carregar as equipes: {{ equipesErro }}</small> }
+      </label>
+      <div class="largo"><span class="rotulo-editor">Conteúdo do documento</span>
+        <div class="editor-shell">
+          <div class="toolbar" aria-label="Formatação do documento">
+            <button type="button" title="Negrito" (mousedown)="$event.preventDefault()" (click)="formatar('documento','bold')"><b>N</b></button>
+            <button type="button" title="Itálico" (mousedown)="$event.preventDefault()" (click)="formatar('documento','italic')"><i>I</i></button>
+            <button type="button" title="Sublinhado" (mousedown)="$event.preventDefault()" (click)="formatar('documento','underline')"><u>S</u></button>
+            <button type="button" title="Lista" (mousedown)="$event.preventDefault()" (click)="formatar('documento','insertUnorderedList')">• Lista</button>
+            <button type="button" title="Lista numerada" (mousedown)="$event.preventDefault()" (click)="formatar('documento','insertOrderedList')">1. Lista</button>
+            <button type="button" title="Parágrafo" (mousedown)="$event.preventDefault()" (click)="formatar('documento','formatBlock','p')">Parágrafo</button>
+          </div>
+          <div #editorDocumento class="editor-area" contenteditable="true" role="textbox" aria-label="Conteúdo do documento" aria-multiline="true" (input)="atualizarEditor('documento')" (blur)="atualizarEditor('documento')" data-placeholder="Escreva o documento aqui..."></div>
+        </div>
+        <small class="dica">Use a barra para formatar o texto. Limite do backend: 8.000 caracteres incluindo marcação.</small>
+      </div></div>
+    <button type="button" (click)="criar()">Registrar documento</button>
+  </div>
+  <div class="painel">
+    <div class="linha entre"><h2>Documentos recebidos pela minha equipe</h2><button type="button" class="secundario" (click)="carregarRecebidos()">Atualizar</button></div>
+    @for (doc of recebidos(); track doc.id) {
+      <article class="documento"><strong>{{ doc.tipo }} — {{ doc.assunto }}</strong>
+        <div class="texto-rico" [innerHTML]="doc.conteudo"></div><small>Tarefa #{{ doc.tarefaId }} · {{ doc.equipeOrigemNome }} → {{ doc.equipeDestinoNome }} · {{ doc.criadoEm }}</small>
+        <div><button type="button" class="secundario" (click)="abrir(doc)">Responder</button></div></article>
+    } @empty { <p class="vazio">Nenhum documento encaminhado às suas equipes.</p> }
+  </div>
+  @if (selecionado(); as doc) {
+    <div class="painel" id="respostas"><h2>Histórico — {{ doc.assunto }}</h2><small>Documento #{{ doc.id }} · Tarefa #{{ doc.tarefaId }}</small>
+      @for (r of respostas(); track r.id) { <article class="resposta"><strong>{{ r.autorNome }}</strong> <small>{{ r.criadoEm }}</small><div class="texto-rico" [innerHTML]="r.conteudo"></div></article> }
+      <div class="responder-editor"><span class="rotulo-editor">Nova resposta</span>
+        <div class="editor-shell"><div class="toolbar" aria-label="Formatação da resposta">
+          <button type="button" (mousedown)="$event.preventDefault()" (click)="formatar('resposta','bold')"><b>N</b></button>
+          <button type="button" (mousedown)="$event.preventDefault()" (click)="formatar('resposta','italic')"><i>I</i></button>
+          <button type="button" (mousedown)="$event.preventDefault()" (click)="formatar('resposta','insertUnorderedList')">• Lista</button>
+        </div><div #editorResposta class="editor-area" contenteditable="true" role="textbox" aria-label="Texto da resposta" aria-multiline="true" (input)="atualizarEditor('resposta')" (blur)="atualizarEditor('resposta')" data-placeholder="Escreva sua resposta..."></div></div>
+      </div>
+      <div class="linha"><button type="button" (click)="responder()">Registrar resposta</button><button type="button" class="secundario" (click)="selecionado.set(null)">Fechar</button></div>
+    </div>
+  }
+</section>

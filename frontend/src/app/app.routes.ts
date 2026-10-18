@@ -8,6 +8,7 @@ export const routes: Routes = [
   { path: 'usuarios', canActivate: [autenticadoGuard], loadComponent: () => import('./pages/usuarios/usuarios.component').then(m => m.UsuariosComponent) },
   { path: 'equipes', canActivate: [autenticadoGuard], loadComponent: () => import('./pages/equipes/equipes.component').then(m => m.EquipesComponent) },
   { path: 'processos', canActivate: [autenticadoGuard], loadComponent: () => import('./pages/processos/processos.component').then(m => m.ProcessosComponent) },
+  { path: 'minhas-tarefas', canActivate: [autenticadoGuard], loadComponent: () => import('./pages/minhas-tarefas/minhas-tarefas.component').then(m => m.MinhasTarefasComponent) },
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   { path: '**', redirectTo: 'inicio' }
 ];

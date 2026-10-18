@@ -29,6 +29,10 @@
           </a>
         }
         <div class="nav-section">ACOMPANHAMENTO</div>
+        <a routerLink="/minhas-tarefas" routerLinkActive="active" (click)="menuAberto.set(false)">
+          <span class="nav-icon">✓</span><span>Minhas responsabilidades</span>
+        </a>
+        
         <a routerLink="/processos" routerLinkActive="active" (click)="menuAberto.set(false)">
           <span class="nav-icon">▤</span><span>Processos e atividades</span>
         </a>

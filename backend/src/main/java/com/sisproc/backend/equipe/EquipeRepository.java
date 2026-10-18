@@ -9,4 +9,6 @@ public interface EquipeRepository extends JpaRepository<Equipe, Long> {
     boolean existsByNomeIgnoreCase(String nome);
 
     List<Equipe> findAllByOrderByNomeAsc();
+
+    List<Equipe> findByGestorIdAndAtivoTrueOrderByNomeAsc(Long gestorId);
 }

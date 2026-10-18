@@ -50,6 +50,15 @@ public class UsuarioController {
             .toList();
     }
 
+    @PatchMapping("/{usuarioId}/perfil")
+    public UsuarioResposta alterarPerfilUsuario(
+            @org.springframework.web.bind.annotation.PathVariable Long usuarioId,
+            @Valid @RequestBody AlterarPerfilRequisicao requisicao) {
+        return UsuarioResposta.de(usuarioService.alterarPerfilUsuario(usuarioId, requisicao.perfil()));
+    }
+
+    public record AlterarPerfilRequisicao(@NotNull Perfil perfil) {}
+
     public record CriarUsuarioRequisicao(
         @NotBlank(message = "O nome é obrigatório.")
         @Size(max = 150, message = "O nome deve ter até 150 caracteres.")

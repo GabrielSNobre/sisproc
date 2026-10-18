@@ -1,0 +1,63 @@
+<section class="responsabilidades">
+  <header class="cabecalho">
+    <div>
+      <span class="eyebrow">ACOMPANHAMENTO PESSOAL</span>
+      <h1>Minhas responsabilidades</h1>
+      <p>Tarefas atribuídas a você pelas equipes do SISPROC.</p>
+    </div>
+    <button type="button" class="atualizar" (click)="carregar()" [disabled]="carregando()">Atualizar</button>
+  </header>
+
+  <div class="indicadores" aria-label="Resumo das tarefas">
+    <div><strong>{{ pendentes() }}</strong><span>Pendentes</span></div>
+    <div><strong>{{ andamento() }}</strong><span>Em andamento</span></div>
+    <div><strong>{{ concluidas() }}</strong><span>Concluídas</span></div>
+  </div>
+
+  @if (erro()) { <div class="mensagem erro" role="alert">{{ erro() }}</div> }
+  @if (sucesso()) { <div class="mensagem sucesso" role="status">{{ sucesso() }}</div> }
+
+  <div class="barra">
+    <h2>Tarefas atribuídas</h2>
+    <label>Filtrar por situação
+      <select [value]="filtro()" (change)="filtro.set($any($event.target).value)">
+        <option value="TODAS">Todas</option>
+        @for (opcao of statusOpcoes; track opcao.valor) {
+          <option [value]="opcao.valor">{{ opcao.texto }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (carregando()) {
+    <p class="vazio">Carregando responsabilidades...</p>
+  } @else if (tarefasFiltradas().length === 0) {
+    <p class="vazio">Nenhuma responsabilidade encontrada para o filtro selecionado.</p>
+  } @else {
+    <div class="lista">
+      @for (tarefa of tarefasFiltradas(); track tarefa.id) {
+        <article class="tarefa">
+          <div class="linha">
+            <div>
+              <span class="equipe">{{ tarefa.equipeNome || ('Equipe #' + tarefa.equipeId) }}</span>
+              <h3>{{ tarefa.titulo }}</h3>
+            </div>
+            <span class="prioridade">Prioridade {{ prioridadeTexto(tarefa.prioridade) }}</span>
+          </div>
+          @if (tarefa.descricao) { <p class="descricao">{{ tarefa.descricao }}</p> }
+          <div class="rodape">
+            <span>Prazo: {{ tarefa.prazo || 'Não definido' }}</span>
+            <label>Situação
+              <select [value]="tarefa.status" [disabled]="salvandoId() !== null"
+                      (change)="alterarStatus(tarefa, $any($event.target).value)">
+                @for (opcao of statusOpcoes; track opcao.valor) {
+                  <option [value]="opcao.valor">{{ opcao.texto }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

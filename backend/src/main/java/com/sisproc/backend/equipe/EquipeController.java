@@ -51,6 +51,14 @@ public class EquipeController {
                 .toList();
     }
 
+    @GetMapping("/minhas")
+    public List<EquipeResposta> listarMinhasEquipes() {
+        return equipeService.listarMinhasEquipes()
+                .stream()
+                .map(EquipeController::converterEquipe)
+                .toList();
+    }
+
     @PostMapping("/{id}/membros")
     public MembroResposta adicionarMembro(
             @PathVariable @Positive Long id,

@@ -157,6 +157,23 @@ public class UsuarioService {
 				);
 	}
 
+	/** Altera o nível de acesso de outro usuário, somente por administrador. */
+	@Transactional
+	public Usuario alterarPerfilUsuario(Long usuarioId, Perfil novoPerfil) {
+		exigirAdministradorAutenticado();
+		if (novoPerfil == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O perfil é obrigatório.");
+		}
+		Usuario alvo = usuarioRepository.findById(usuarioId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+		Usuario administrador = obterUsuarioAutenticado();
+		if (alvo.getId().equals(administrador.getId()) && novoPerfil != Perfil.ADMINISTRADOR) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é permitido rebaixar o próprio perfil de administrador.");
+		}
+		alvo.setPerfil(novoPerfil);
+		return usuarioRepository.save(alvo);
+	}
+
 	public Usuario obterMeuPerfil() {
 		return obterUsuarioAutenticado();
 	}

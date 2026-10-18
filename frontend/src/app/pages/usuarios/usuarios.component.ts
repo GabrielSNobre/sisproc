@@ -18,6 +18,10 @@ export class UsuariosComponent {
   readonly salvandoSenha = signal(false);
   readonly erroSenha = signal('');
   readonly sucessoSenha = signal('');
+  readonly usuarioPerfilSelecionado = signal<UsuarioSessao | null>(null);
+  readonly salvandoPerfil = signal(false);
+  readonly erroPerfil = signal('');
+  perfilEdicao = 'USUARIO';
 
   nome = ''; email = ''; senha = ''; perfil = 'USUARIO';
   novaSenhaAdmin = ''; confirmarSenhaAdmin = '';
@@ -84,6 +88,40 @@ export class UsuariosComponent {
       this.erroSenha.set(this.api.mensagemErro(e));
     } finally {
       this.salvandoSenha.set(false);
+    }
+  }
+
+  abrirTrocaPerfil(usuario: UsuarioSessao): void {
+    this.usuarioPerfilSelecionado.set(usuario);
+    this.perfilEdicao = usuario.perfil;
+    this.erroPerfil.set('');
+    this.sucesso.set('');
+  }
+
+  fecharTrocaPerfil(): void {
+    if (this.salvandoPerfil()) return;
+    this.usuarioPerfilSelecionado.set(null);
+    this.erroPerfil.set('');
+  }
+
+  async alterarPerfil(): Promise<void> {
+    const usuario = this.usuarioPerfilSelecionado();
+    if (!usuario || this.salvandoPerfil()) return;
+    this.erroPerfil.set('');
+    if (this.perfilEdicao === usuario.perfil) {
+      this.fecharTrocaPerfil();
+      return;
+    }
+    this.salvandoPerfil.set(true);
+    try {
+      await this.api.patch<UsuarioSessao>(`/usuarios/${usuario.id}/perfil`, { perfil: this.perfilEdicao });
+      this.usuarioPerfilSelecionado.set(null);
+      this.sucesso.set(`Perfil de ${usuario.nome} alterado para ${this.perfilLabel(this.perfilEdicao)}.`);
+      await this.carregar();
+    } catch (e) {
+      this.erroPerfil.set(this.api.mensagemErro(e));
+    } finally {
+      this.salvandoPerfil.set(false);
     }
   }
 
